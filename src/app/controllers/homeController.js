@@ -117,24 +117,17 @@ class homeController {
                     Authorization: 'OTP eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc0NjMzNjAyLCJpYXQiOjE2NzIwMjM2MTQsImp0aSI6Ijg2YWEzYzk4Y2IyYTQ1OTU5ZTQ3YTFlNDI2YTFlNjIwIiwidXNlcl9pZCI6Miwicm9sZSI6InVzZXIifQ.tO0rK6MimbPhUWm6GhUOJ2Bah2Zgn6A6xu2Fxs8M71Y'
                 }
             }, function (error, response, body) {
-                console.log(body);
-                // body.data.items.map(async (item) => {
+                const data = JSON.parse(body)
+                data.data.items.map(async (item, index) => {
+                    const order = await orderDB.create({ ...item, idOrder: item.id })
 
-                // })
+                    if (index + 1 == data.data.items.length) {
+                        return res.json({
+                            status: true
+                        })
+                    }
+                })
             });
-            const order = await orderDB.created({
-                idOrder: 1,
-                phoneNumber: '0399801978',
-                provider: 'String',
-                serviceName: 'String',
-                priceUser: 14,
-                oldBalance: 7,
-                content: 'String',
-                status: 'String',
-            })
-            return res.json({
-                data: order
-            })
         } catch (error) {
             console.log(error);
         }
