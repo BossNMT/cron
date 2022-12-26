@@ -1,0 +1,292 @@
+<style>
+    #btn-close {
+        font-size: 30px;
+        padding: 5px;
+        background-color: none;
+        position: absolute;
+        right: 0;
+        transition: 0.5s;
+    }
+
+    #btn-close:hover {
+        color: red;
+        background-color: rgb(245, 244, 244);
+        cursor: pointer;
+    }
+
+    .btn-createKho {
+        transform: translate(90%);
+        padding: 0 3px 0 3px;
+    }
+
+    .btn-createKho ion-icon {
+        font-size: 20px;
+        position: absolute;
+    }
+
+    .btn-createKho span {
+        margin-left: 24px;
+
+    }
+</style>
+
+{{> header}}
+
+<div class="home_content">
+    <div class="text">
+        <div name="container-form" class="mt-4">
+            <div class="btn-createKho mr-0">
+                <a href="/me/create/kho">
+                    <button type="button" class="btn btn-success">
+                        <ion-icon name="add-circle"></ion-icon>
+                        <span>Nhập Kho</span>
+                    </button>
+                </a>
+            </div>
+            <div class="row">
+                {{#each sanpham}}
+                <div class="col-sm-3 mt-4">
+                    <div class="card">
+                        <ion-icon id="btn-close" data-id="{{this._id}}" data-toggle="modal"
+                            data-target="#delete-sanpham" name="close-circle-outline"></ion-icon>
+                        <div class="card-body">
+                            <h4 class="card-title">{{this.sanpham}}</h4>
+                            <h6 class="card-text">Model: {{this.model}}</h6>
+                            <h6 class="card-text">Số lượng: {{this.soluong}}</h6>
+                            <h6 class="card-text">Giá: {{formatMoney this.giahientai}}</h6>
+                            <h6 class="card-text">Cập nhật: {{prettifyDate this.updatedAt}}</h6>
+                            <button data-sanpham="{{this.sanpham}}" data-gia="{{this.giahientai}}"
+                                class="btn btn-primary btn-edit" data-toggle="modal" data-id="{{this._id}}"
+                                data-model="{{this.model}}" data-target="#editgiaca">
+                                Chỉnh sửa giá
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+
+            <table class="table table-striped mt-4">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Thời gian</th>
+                        <th scope="col">Sản phầm</th>
+                        <th scope="col">Model</th>
+                        <th scope="col">Số lượng</th>
+                        <th scope="col">Tổng tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each kho}}
+                    <tr>
+                        <td>{{prettifyDate this.createdAt}}</td>
+                        <td>{{this.sanpham}}</td>
+                        <td>{{this.model}}</td>
+                        <td>{{this.soluong}}</td>
+                        <td>{{formatMoney this.tongtien}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+
+        {{!-- Modall Chỉnh sửa giá --}}
+        <div class="modal fade" id="editgiaca" tabindex="-1" aria-labelledby="exampleModalLabel" 4343478;
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Chỉnh sủa giá</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h5 id="modal-namesanpham">Tên Sản Phẩm:</h5>
+                        <h6 id="modal-model">Model:</h6>
+                        <h6>Giá Hiện Tại: </h6>
+                        <input id="modal-gia" type="currency" value="" name="giahientai" class="form-control" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                        <button id="btn-update" type="button" class="btn btn-primary" disabled>Lưu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{!-- Modal xóa sản phẩm --}}
+        <div class="modal fade" id="delete-sanpham" tabindex="-1" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Xóa Sản Phẩm này ?</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Sản phẩm sẽ được chuyển vào thùng rác !</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                        <button id="btn-delete" type="button" class="btn btn-danger">Xóa</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+{{!-- Form --}}
+<form name="form-all" method="POST"></form>
+
+
+{{!-- Javascript --}}
+
+<script src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#editgiaca').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget)
+            const sanphamDB = button.data('sanpham')
+            const modelDB = button.data('model')
+            const giacaDB = button.data('gia')
+            const idDB = button.data('id')
+
+            const nameH6Element = document.querySelector('#modal-namesanpham')
+            nameH6Element.innerHTML = `Tên Sản Phẩm: ${sanphamDB}`
+            const giacaElement = document.querySelector('#modal-gia')
+            giacaElement.value = giacaDB
+            const modelElement = document.querySelector('#modal-model')
+            modelElement.innerHTML = `Model: ${modelDB}`
+
+            //------update giá cả-----------
+            var giacaNEW;
+            giacaElement.onkeyup = function (e) {
+                giacaNEW = numberMoney(e.target.value);
+                if (giacaNEW == '') {
+                    btnUpdate.disabled = true
+                } else {
+                    btnUpdate.disabled = false
+                }
+            }
+
+            //----gửi update----
+            const updateForm = document.forms['form-all']
+            const btnUpdate = document.querySelector('#btn-update')
+            btnUpdate.onclick = function () {
+                updateForm.action = `/send/san-pham/${idDB}/${giacaNEW}/update-gia?_method=PATCH`;
+                updateForm.submit();
+            }
+        })
+
+        //---xóa vào thùng rác----
+        $('#delete-sanpham').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget)
+            const idDB = button.data('id')
+
+            const deleteForm = document.forms['form-all']
+            const btnDelete = document.querySelector('#btn-delete')
+            btnDelete.onclick = function () {
+                deleteForm.action = `/send/san-pham/${idDB}/delete?_method=DELETE`;
+                deleteForm.submit();
+            }
+        })
+    })
+
+    //------------ Fix Giá Tiền----------
+    function numberMoney(value) {
+        var money = '';
+        if (value != '') {
+            var moneyMang = value.split(',')
+            for (let i = 0; i < moneyMang.length; i++) {
+                money += moneyMang[i];
+            }
+        }
+        return money
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        $("#modal-gia").on({
+            keyup: function () {
+                formatCurrency($(this));
+            },
+            blur: function () {
+                formatCurrency($(this), "blur");
+            }
+        });
+
+        function formatNumber(n) {
+            // format number 1000000 to 1,234,567
+            return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        }
+
+
+        function formatCurrency(input, blur) {
+            // appends $ to value, validates decimal side
+            // and puts cursor back in right position.
+
+            // get input value
+            var input_val = input.val();
+
+            // don't validate empty input
+            if (input_val === "") { return; }
+
+            // original length
+            var original_len = input_val.length;
+
+            // initial caret position 
+            var caret_pos = input.prop("selectionStart");
+
+            // check for decimal
+            if (input_val.indexOf(".") >= 0) {
+
+                // get position of first decimal
+                // this prevents multiple decimals from
+                // being entered
+                var decimal_pos = input_val.indexOf(".");
+
+                // split number by decimal point
+                var left_side = input_val.substring(0, decimal_pos);
+                var right_side = input_val.substring(decimal_pos);
+
+                // add commas to left side of number
+                left_side = formatNumber(left_side);
+
+                // validate right side
+                right_side = formatNumber(right_side);
+
+                // On blur make sure 2 numbers after decimal
+                if (blur === "blur") {
+                    right_side += "00";
+                }
+
+                // Limit decimal to only 2 digits
+                right_side = right_side.substring(0, 2);
+
+                // join number by .
+                input_val = left_side + "." + right_side;
+
+            } else {
+                // no decimal entered
+                // add commas to number
+                // remove all non-digits
+                input_val = formatNumber(input_val);
+                input_val = input_val;
+            }
+
+            // send updated string to input
+            input.val(input_val);
+
+            // put caret back in the right position
+            var updated_len = input_val.length;
+            caret_pos = updated_len - original_len + caret_pos;
+            input[0].setSelectionRange(caret_pos, caret_pos);
+        }
+    })
+</script>
