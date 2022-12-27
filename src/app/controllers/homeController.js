@@ -1,5 +1,6 @@
 const hoadonDB = require('../models/hoadon');
 const orderDB = require('../models/oders')
+const countDB = require('../models/count')
 const { listDb } = require('../../util/mongoose');
 // const axios = require('axios')
 var request = require('request');
@@ -116,20 +117,82 @@ class homeController {
                 headers: {
                     Authorization: 'OTP eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc0NjMzNjAyLCJpYXQiOjE2NzIwMjM2MTQsImp0aSI6Ijg2YWEzYzk4Y2IyYTQ1OTU5ZTQ3YTFlNDI2YTFlNjIwIiwidXNlcl9pZCI6Miwicm9sZSI6InVzZXIifQ.tO0rK6MimbPhUWm6GhUOJ2Bah2Zgn6A6xu2Fxs8M71Y'
                 }
-            }, function (error, response, body) {
-                const data = JSON.parse(body)
-                data.data.items.map(async (item, index) => {
-                    const order = await orderDB.create({ ...item, idOrder: item.id })
-
-                    if (index + 1 == data.data.items.length) {
-                        return res.json({
-                            status: true
-                        })
+            }, async function (error, response, body) {
+                const dataNew = JSON.parse(body).data.items
+                const listOder = await orderDB.find({ status: 'Pending' }).sort({ idOrder: -1 })
+                const count = await countDB.findOne({ countId: 1473 })
+                listOder.map(async (item) => {
+                    const data = dataNew.find(itemDataNew => item.idOrder == itemDataNew.id)
+                    if (data) {
+                        const update = await orderDB.updateOne({ idOrder: item.idOrder }, { ...data })
                     }
+                })
+
+                for (let index = 0; index < dataNew.length; index++) {
+                    const element = dataNew[index];
+
+                    if (index == 0) {
+                        const updateCount = await countDB.updateOne({ countId: 1473 }, { total: dataNew[index].id })
+                    }
+
+                    if (element.id == count.total) {
+                        break;
+                    } else {
+                        const order = await orderDB.create({ ...element, idOrder: element.id })
+                    }
+
+                }
+
+                return res.json({
+                    status: true
                 })
             });
         } catch (error) {
-            console.log(error);
+            res.json({
+                status: false
+            })
+        }
+    }
+
+    async getAll(req, res) {
+        try {
+            const data = await orderDB.find({}).sort({ idOrder: -1 })
+            return res.json({
+                status: true,
+                data: data
+            })
+        } catch (error) {
+            res.json({
+                status: false,
+                data: null,
+                message: error
+            })
+        }
+    }
+
+    async getList(req, res) {
+        try {
+            const { list } = req.body
+            let data = []
+
+            list.map(async (itemList, index) => {
+                const item = await orderDB.find({ idOrder: itemList })
+                data.push(item)
+
+                if (data.length == list.length) {
+                    return res.json({
+                        status: true,
+                        data: data,
+                        message: null
+                    })
+                }
+            })
+        } catch (error) {
+            res.json({
+                status: false,
+                data: null,
+                message: error
+            })
         }
     }
 }
